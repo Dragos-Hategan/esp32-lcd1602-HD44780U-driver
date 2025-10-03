@@ -1,6 +1,6 @@
-# i2c-lcd1602 (ESP-IDF, I²C, HD44780 via PCF8574)
+# LCD1602 (ESP-IDF, I²C, HD44780 via PCF8574)
 ## Why this repo?
-A minimal, production-oriented driver for HD44780-compatible LCDs (16×2/20×4) over I²C using a PCF8574/PCF8574A expander and the modern ESP-IDF esp_driver_i2c API. Fork-level rewrite from David Antliff’s driver to match current ESP-IDF (handles, bus/device objects, timing).
+A minimal, production-oriented driver for HD44780-compatible LCDs (16×2/20×4) over I²C using a PCF8574/PCF8574A expander and the modern ESP-IDF esp_driver_i2c API.
 
 ## Features
 
