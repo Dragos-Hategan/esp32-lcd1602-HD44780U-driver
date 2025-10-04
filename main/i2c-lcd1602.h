@@ -98,6 +98,25 @@ typedef enum
     } while(0)
 
 /**
+ * @brief Initialize the I2C subsystem (bus + device).
+ *
+ * This function is a convenience wrapper that initializes the I2C master bus
+ * and then attaches the configured device to it. It should be called once
+ * during application startup before performing any I2C transactions.
+ *
+ * @param[out] i2c_bus Pointer to the I2C master bus handle.
+ * @param[out] dev     Pointer to the I2C device handle.
+ *
+ * @retval ESP_OK              Both bus and device successfully initialized.
+ * @retval ESP_ERR_INVALID_ARG Invalid arguments passed to bus/device init.
+ * @retval ESP_FAIL            Failure in creating bus or adding device.
+ *
+ * @note In case of failure, the error is logged and the caller is responsible
+ *       for handling cleanup (e.g. deleting bus if created).
+ */
+esp_err_t i2c_init(i2c_master_bus_handle_t *i2c_bus, i2c_master_dev_handle_t *dev);
+
+/**
  * @brief Allocate a zeroed driver state structure.
  *
  * @return Pointer to a newly allocated ::i2c_lcd1602_info_t, or NULL on allocation failure.

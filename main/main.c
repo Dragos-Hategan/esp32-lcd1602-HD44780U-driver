@@ -63,31 +63,14 @@
 void app_main(void)
 {
     esp_err_t err;
-
-    // 1) Create I2C master bus
+    
+    // 1) Init I2C master bus and device
     i2c_master_bus_handle_t i2c_bus = NULL;
-    i2c_master_bus_config_t bus_cfg = {
-        .i2c_port = I2C_PORT,
-        .sda_io_num = I2C_SDA_GPIO,
-        .scl_io_num = I2C_SCL_GPIO,
-        .clk_source = I2C_CLK_SRC_DEFAULT,
-        .glitch_ignore_cnt = 7,                
-        .flags.enable_internal_pullup = true,   // could be set false if you use external pull-ups
-    };
-    err = i2c_new_master_bus(&bus_cfg, &i2c_bus);
-    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_new_master_bus failed: %d", err); return; }
-
-    // 2) Add the PCF8574 device (the LCD backpack)
     i2c_master_dev_handle_t dev = NULL;
-    i2c_device_config_t dev_cfg = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = PCF8574_I2C_ADDRESS,
-        .scl_speed_hz = I2C_CLK_HZ,
-    };
-    err = i2c_master_bus_add_device(i2c_bus, &dev_cfg, &dev);
-    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_master_bus_add_device failed: %d", err); return; }
-
-    // 3) Initialize the LCD1602 driver
+    err = i2c_init(&i2c_bus, &dev);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c init failed: %d", err); goto cleanup; }
+    
+    // 2) Initialize the LCD1602 driver
     i2c_lcd1602_info_t *lcd = i2c_lcd1602_malloc();
     if (!lcd) { ESP_LOGE(TAG, "lcd malloc failed"); return; }
 
@@ -96,7 +79,7 @@ void app_main(void)
     err = i2c_lcd1602_init(lcd, dev, /*backlight=*/true, 2, 40, 16);
     if (err != ESP_OK) { ESP_LOGE(TAG, "lcd init failed: %d", err); goto cleanup; }
 
-    // 4) Basic writes
+    // 3) Basic writes
     i2c_lcd1602_clear(lcd);
     i2c_lcd1602_move_cursor(lcd, 0, 0);
     i2c_lcd1602_write_string(lcd, "ESP-IDF LCD1602");
@@ -108,7 +91,7 @@ void app_main(void)
 
     vTaskDelay(pdMS_TO_TICKS(2500));
 
-    // 5) Cursor + blink ON briefly
+    // 4) Cursor + blink ON briefly
     i2c_lcd1602_set_cursor(lcd, true);
     i2c_lcd1602_set_blink(lcd, true);
     vTaskDelay(pdMS_TO_TICKS(2500));
@@ -116,7 +99,7 @@ void app_main(void)
     i2c_lcd1602_set_cursor(lcd, false);
 
 
-    // 6) Small scroll left then right
+    // 5) Small scroll left then right
     for (int i = 0; i < 8; ++i) {
         i2c_lcd1602_scroll_display_left(lcd);
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -126,7 +109,7 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 
-    // 7) Blink backlight
+    // 6) Blink backlight
     vTaskDelay(pdMS_TO_TICKS(300));
     i2c_lcd1602_set_backlight(lcd, false);
     vTaskDelay(pdMS_TO_TICKS(800));
@@ -137,7 +120,7 @@ void app_main(void)
     i2c_lcd1602_set_backlight(lcd, true);
     vTaskDelay(pdMS_TO_TICKS(800));
 
-    // 8) Simple loop: update a counter on the second line
+    // 7) Simple loop: update a counter on the second line
     int counter = 0;
     while (1) {
         char buf[20];

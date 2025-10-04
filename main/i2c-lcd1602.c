@@ -28,6 +28,7 @@
 #include "esp_rom_sys.h"
 
 #include "i2c-lcd1602.h"
+#include "i2c_config.h"
 
 #define TAG "i2c-lcd1602"
 
@@ -93,6 +94,72 @@
 #ifndef I2C_LCD1602_I2C_TIMEOUT_MS
 #define I2C_LCD1602_I2C_TIMEOUT_MS 1000
 #endif
+
+/**
+ * @brief Initialize the I2C master bus.
+ *
+ * This function creates and configures a new I2C master bus using the default
+ * GPIO pins and clock source defined in the project configuration.
+ * Internal pull-ups are enabled by default but can be disabled if external
+ * pull-up resistors are used.
+ *
+ * @param[out] i2c_bus Pointer to the I2C master bus handle. On success,
+ *                     this will contain the initialized bus handle.
+ *
+ * @retval ESP_OK              Bus successfully initialized.
+ * @retval ESP_ERR_INVALID_ARG Invalid arguments.
+ * @retval ESP_FAIL            Internal driver error.
+ */
+static esp_err_t i2c_bus_init(i2c_master_bus_handle_t *i2c_bus)
+{
+    // Init I2C master bus
+    i2c_master_bus_config_t bus_cfg = {
+        .i2c_port = I2C_PORT,
+        .sda_io_num = I2C_SDA_GPIO,
+        .scl_io_num = I2C_SCL_GPIO,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,                
+        .flags.enable_internal_pullup = true,   // could be set false if you use external pull-ups
+    };
+    return i2c_new_master_bus(&bus_cfg, i2c_bus);
+}
+
+/**
+ * @brief Attach an I2C device to the specified bus.
+ *
+ * This function registers an I2C device (e.g. PCF8574 I/O expander used for
+ * an LCD backpack) to an existing I2C bus.
+ *
+ * @param[in]  i2c_bus I2C master bus handle previously created with
+ *                     ::i2c_bus_init().
+ * @param[out] dev     Pointer to the I2C device handle. On success,
+ *                     this will contain the initialized device handle.
+ *
+ * @retval ESP_OK              Device successfully added to the bus.
+ * @retval ESP_ERR_INVALID_ARG Invalid arguments.
+ * @retval ESP_FAIL            Internal driver error.
+ */
+static esp_err_t i2c_device_init(i2c_master_bus_handle_t i2c_bus, i2c_master_dev_handle_t *dev)
+{
+    // Add the PCF8574 device (the LCD backpack)
+    i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = PCF8574_I2C_ADDRESS,
+        .scl_speed_hz = I2C_CLK_HZ,
+    };
+    return i2c_master_bus_add_device(i2c_bus, &dev_cfg, dev);
+}
+
+esp_err_t i2c_init(i2c_master_bus_handle_t *i2c_bus, i2c_master_dev_handle_t *dev)
+{
+    esp_err_t err = i2c_bus_init(i2c_bus);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_new_master_bus failed: %d", err); return err;}
+
+    err = i2c_device_init(*i2c_bus, dev);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_master_bus_add_device failed: %d", err);}
+
+    return err;
+}
 
 /**
  * @brief Check if the driver info struct is initialized.
