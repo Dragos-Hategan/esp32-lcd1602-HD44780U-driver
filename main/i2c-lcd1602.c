@@ -152,13 +152,15 @@ static esp_err_t i2c_device_init(i2c_master_bus_handle_t i2c_bus, i2c_master_dev
 
 esp_err_t i2c_init(i2c_master_bus_handle_t *i2c_bus, i2c_master_dev_handle_t *dev)
 {
+    if (!i2c_bus || !dev) return ESP_ERR_INVALID_ARG;
+
     esp_err_t err = i2c_bus_init(i2c_bus);
     if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_new_master_bus failed: %d", err); return err;}
 
     err = i2c_device_init(*i2c_bus, dev);
-    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_master_bus_add_device failed: %d", err);}
+    if (err != ESP_OK) { ESP_LOGE(TAG, "i2c_master_bus_add_device failed: %d", err); return err;}
 
-    return err;
+    return ESP_OK;
 }
 
 /**

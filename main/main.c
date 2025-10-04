@@ -134,6 +134,8 @@ void app_main(void)
 
 cleanup:
     // This label is used only for early errors (we never reach here in the loop).
-    if (lcd) { i2c_lcd1602_free(&lcd); }
+    if (dev)        { (void)i2c_master_bus_rm_device(dev);  dev = NULL; }
+    if (i2c_bus)    { (void)i2c_del_master_bus(i2c_bus);    i2c_bus = NULL; }
+    if (lcd)        { i2c_lcd1602_free(&lcd); }
     // Note: i2c_bus/dev remain alive since app_main never exits in this example.
 }
