@@ -344,7 +344,7 @@ esp_err_t i2c_lcd1602_init(i2c_lcd1602_info_t * info, i2c_master_dev_handle_t de
     info->init = true;
 
     // Wait at least 40ms after power rises
-    esp_rom_delay_us(DELAY_POWER_ON);
+    vTaskDelay(pdMS_TO_TICKS(DELAY_POWER_ON / 1000));
 
     return i2c_lcd1602_reset(info);
 }
