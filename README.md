@@ -14,14 +14,18 @@ A minimal, production-oriented driver for HD44780-compatible LCDs (16×2/20×4) 
 - Small surface: i2c_lcd1602_* API only, no globals
 
 ## Hardware
-
+- Modify 
 - MCU: ESP32 family (ESP-IDF v5+)
 - I²C bus: any pins supported by your SoC (open-drain, pull-ups required)
 - Expander: PCF8574 or PCF8574A breakout (typical I²C addr 0x27 or 0x3F)
 - LCD: HD44780-compatible (e.g., 16×2, 20×4)
 - Note: Backpack wiring is commonly P7..P0 = D7..D4, BL, E, RW, RS but variants exist. This driver assumes backlight on P3; adjust hardware if your board differs.
 
+## Setup
+![Setup](/docs/Setup.jpg)
+
 ## Configuration
+- Modify file **i2c_config.h** with your desired configuration.
 - I²C speed: 100 kHz is safest. 400 kHz usually works with short wires and solid pull-ups.
 - Pull-ups: 4.7–10 kΩ to 3.3 V on SDA/SCL (prefer external; internal pull-ups are weak).
 - Addresses: PCF8574 (0x20–0x27), PCF8574A (0x38–0x3F). Most backpacks use 0x27 or 0x3F.
